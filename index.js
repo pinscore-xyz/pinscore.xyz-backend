@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const session = require("express-session");
+
 const multer = require("multer");
 const passport = require("passport");
 
@@ -31,22 +31,12 @@ app.use(cors({
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Session Middleware
-app.use(session({
-  secret: process.env.SESSION_SECRET || "fallback-secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false, // Set to true when behind HTTPS
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
-  }
-}));
+
 
 // Passport Authentication
 configurePassport(passport);
 app.use(passport.initialize());
-app.use(passport.session());
+
 
 // HEALTH & ROOT ROUTES
 app.get("/", (req, res) => {

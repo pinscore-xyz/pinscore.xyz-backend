@@ -15,12 +15,13 @@ router.get(
       "profile",
       "email",
     ],
+    session: false,
   })
 );
 
 router.get(
   "/youtube/callback",
-  passport.authenticate("youtube-oauth2", { failureRedirect: "/login" }),
+  passport.authenticate("youtube-oauth2", { failureRedirect: "/login", session: false }),
   (req, res) => {
     // Successful authentication, redirect to frontend
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
