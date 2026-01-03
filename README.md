@@ -55,7 +55,7 @@ Follow these steps to set up the backend:
         GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
         FACEBOOK_APP_ID=YOUR_FACEBOOK_APP_ID
         FACEBOOK_APP_SECRET=YOUR_FACEBOOK_APP_SECRET
-        SESSION_SECRET=YOUR_SESSION_SECRET
+
         ```
 
         Replace the placeholder values with your actual credentials.
