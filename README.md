@@ -1,5 +1,21 @@
 # pinscore.xyz-backend
 
+## 📜 System Authority & Ownership
+
+This repository operates under the Pinscore system authority model.
+
+- **Canonical Authority Charter:**  
+  👉 [`/PINSCORE-DOCS/docs/role-charter.md`](../PINSCORE-DOCS/docs/role-charter.md)
+
+### Key Rules
+
+- Backend is the **system anchor**
+- Schemas are **contracts**
+- Architectural decisions are finalized by the **Chief Product Systems Architect (CPSA)**
+
+Any change that violates the charter **must be escalated before execution**.
+
+
 ## Project Overview
 
 This backend application, built with Node.js and Express.js, serves as the API for the pinscore.xyz platform. It provides authentication, user management, and other essential functionalities.
@@ -122,3 +138,19 @@ This project does not specify a license. All rights are reserved by the owner.
 -   [Node.js](https://nodejs.org/)
 -   [MongoDB](https://www.mongodb.com/)
 -   [Cloudinary](https://cloudinary.com/)
+
+
+##  System Authority & Ownership
+
+This repository operates under the Pinscore system authority model.
+
+- **Canonical Authority Charter:**  
+   [`/PINSCORE-DOCS/docs/EXECUTION_CHARTER.md`](/PINSCORE-DOCS/docs/EXECUTION_CHARTER.md)
+
+### Key Rules
+
+- Backend is the **system anchor**
+- Schemas are **contracts**
+- Architectural decisions are finalized by the **Chief Product Systems Architect (CPSA)**
+
+Any change that violates the charter **must be escalated before execution**.
