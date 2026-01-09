@@ -17,11 +17,14 @@ const sendEmail = async (to, subject, html) => {
       html,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent successfully to ${to}. MessageId: ${info.messageId}`);
   } catch (error) {
-    console.error("Error sending email:", error.message);
-    throw new Error("Could not send email");
+    console.error("❌ Error sending email:", error.message);
+    if (error.code === 'EAUTH') {
+      console.error("Authentication failed. Please check EMAIL_USER and EMAIL_PASS.");
+    }
+    throw new Error(`Could not send email: ${error.message}`);
   }
 };
 

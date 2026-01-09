@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const session = require("express-session");
+
 const multer = require("multer");
 const passport = require("passport");
 
@@ -51,10 +51,11 @@ app.use(session({
     }
 }));
 
+
 // Passport Authentication
 configurePassport(passport);
 app.use(passport.initialize());
-app.use(passport.session());
+
 
 // ============================================
 // HEALTH CHECK ROUTES

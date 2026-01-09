@@ -34,6 +34,25 @@ router.get(
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
         res.redirect(`${frontendUrl}/dashboard/connected-accounts?success=youtube`);
     }
+  "/youtube/auth",
+  passport.authenticate("youtube-oauth2", {
+    scope: [
+      "https://www.googleapis.com/auth/youtube.readonly",
+      "profile",
+      "email",
+    ],
+    session: false,
+  })
+);
+
+router.get(
+  "/youtube/callback",
+  passport.authenticate("youtube-oauth2", { failureRedirect: "/login", session: false }),
+  (req, res) => {
+    // Successful authentication, redirect to frontend
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/dashboard/connected-accounts?success=youtube`);
+  }
 );
 
 router.put("/youtube/disconnect", authenticateToken, disconnectYoutube);

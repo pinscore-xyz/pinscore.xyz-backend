@@ -17,6 +17,7 @@ exports.signup = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
+    // If user exists and is already verified, return status
     if (user && user.isVerified) {
       return res.status(200).json({
         message: "User already verified",
@@ -26,20 +27,17 @@ exports.signup = async (req, res) => {
       });
     }
 
-    if (user && user.otp && user.otpExpiration && new Date() < user.otpExpiration) {
-      return res.status(200).json({
-        message: "Please use the existing OTP sent to your email.",
-      });
-    }
-
+    // Generate new OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     if (user) {
+      // Update existing user with new OTP
       user.otp = otp;
       user.otpExpiration = otpExpiration;
       await user.save();
     } else {
+      // Create new user
       await new User({
         email,
         otp,
@@ -100,102 +98,63 @@ exports.validateOtp = async (req, res) => {
 };
 
 // Set Username Controller
-exports.setUsername = async (req, res) => {
+// exports.setUsername = async (req, res) => {
+  // const { email, username } = req.body;
+
+  // try {
+  //   const user = await User.findOne({ email });
+  //   if (!user) return res.status(404).json({ message: "User not found" });
+
+  //   if (!user.isVerified) {
+  //     return res.status(403).json({ message: "Account not verified" });
+  //   }
+
+  //   if (user.username) {
+  //     return res.status(409).json({ message: "Username already set" });
+  //   }
+
+  //   const usernameExists = await User.findOne({ username });
+  //   if (usernameExists) {
+  //     return res.status(400).json({ message: "Username already taken " });
+  //   }
+
+  //   user.username = username;
+  //   await user.save();
+  exports.setUsername = async (req, res) => {
   const { email, username } = req.body;
+try {
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (!user.isVerified) {
-      return res.status(403).json({ message: "Account not verified" });
-    }
-
-    if (user.username) {
-      return res.status(400).json({ message: "Username already set" });
-    }
-
-    const usernameExists = await User.findOne({ username });
-    if (usernameExists) {
-      return res.status(400).json({ message: "Username already taken" });
-    }
-
-    user.username = username;
-    await user.save();
-
-    res.json({ message: "Username set successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
   }
-};
 
-// Check Status Controller
-exports.checkStatus = async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(200).json({
-        exists: false,
-        isVerified: false,
-        hasUsername: false,
-        hasPassword: false,
-      });
-    }
-
-    res.status(200).json({
-      exists: true,
-      isVerified: user.isVerified,
-      hasUsername: !!user.username,
-      hasPassword: !!user.password,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
+  if (!user.isVerified) {
+    return res.status(403).json({ message: "Account not verified" });
   }
-};
+  
+  if (!username || !username.trim()) {
+    return res.status(422).json({ message: "Username is required" });
+  }
 
+  if (user.username) {
+    return res.status(409).json({ message: "Username already set" });
+  }
 
-// Login Controller
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const usernameExists = await User.findOne({
+    username,
+    _id: { $ne: user._id }
+  });
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+  if (usernameExists) {
+    return res.status(409).json({ message: "Username already taken" });
+  }
 
-    if (!user.isVerified) {
-      return res.status(403).json({ message: "Your account is not verified" });
-    }
-
-    // For OAuth users, if no password set yet, still allow login (but redirect to set password)
-    if (!user.password) {
-      // Generate token anyway for partial access
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "24h",
-      });
-      return res.json({ 
-        message: "Login successful, but no password set. Please set one.", 
-        token,
-        needsPassword: true 
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "24h",
-    });
-
-    res.json({ message: "Login successful", token });
-  } catch (err) {
+  user.username = username.trim();
+  await user.save();
+  res.status(200).json({ message: "Username set successfully" });
+}
+catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -203,6 +162,7 @@ exports.login = async (req, res) => {
 
 
 // Set Password Controller
+
 exports.setPassword = async (req, res) => {
   const { email, username, password } = req.body; // username optional for OAuth
 
@@ -245,14 +205,183 @@ exports.setPassword = async (req, res) => {
     await user.save();
 
     // Generate and return token for immediate login
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      role: user.isAdmin ? 'admin' : 'user'
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.otp;
+    delete userObj.otpExpiration;
+
     res.status(200).json({
-      message: "Password set successfully",
-      userId: user._id,
-      token
+      user: userObj,
+      token,
+      expiresAt
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+// // Login Controller
+//  exports.login = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     if (!user.isVerified) {
+//       return res.status(403).json({ message: "Your account is not verified" });
+//     }
+
+//     // For OAuth users, if no password set yet
+//     if (!user.password) {
+//       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+//       const payload = {
+//         sub: user._id,
+//         // email: user.email,
+//         role: user.isAdmin ? 'admin' : 'user'
+//       };
+      
+//       const token = jwt.sign(payload, process.env.JWT_SECRET, {
+//         expiresIn: "24h",
+//       });
+
+//       const userObj = user.toObject();
+//       delete userObj.password;
+//       delete userObj.otp;
+//       delete userObj.otpExpiration;
+
+//       return res.json({ 
+//         user: userObj,
+//         token,
+//         expiresAt,
+//         needsPassword: true 
+//       });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+//     const payload = {
+//       sub: user._id,
+//       // email: user.email,
+//       role: user.isAdmin ? 'admin' : 'user'
+//     };
+
+//     const token = jwt.sign(payload, process.env.JWT_SECRET, {
+//       expiresIn: "24h",
+//     });
+
+//     const userObj = user.toObject();
+//     delete userObj.password;
+//     delete userObj.otp;
+//     delete userObj.otpExpiration;
+
+//     res.json({ 
+//       user: userObj,
+//       token,
+//       expiresAt 
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Your account is not verified" });
+    }
+
+    // For OAuth users who haven't set a password yet
+    if (!user.password) {
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      const payload = {
+        sub: user._id,
+        role: user.isAdmin ? "admin" : "user"
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "24h"
+      });
+
+      // const userObj = user.toObject();
+      // delete userObj.password;
+      // delete userObj.otp;
+      // delete userObj.otpExpiration;
+      // delete userObj.email; // avoid PII in frontend if needed
+
+      const userObj = {
+      _id: user._id,
+      username: user.username,
+      isAdmin: user.isAdmin,
+      profilePicture: user.profilePicture || { url: null, public_id: null }
+    };
+
+      return res.json({
+        user: userObj,
+        token,
+        expiresAt,
+        needsPassword: true
+      });
+    }
+
+    // Check password for regular users
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const payload = {
+      sub: user._id,
+      role: user.isAdmin ? "admin" : "user"
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "24h"
+    });
+
+    // 
+    const userObj = {
+      _id: user._id,
+      username: user.username,
+      isAdmin: user.isAdmin,
+      profilePicture: user.profilePicture || { url: null, public_id: null }
+    };
+
+    res.json({
+      user: userObj,
+      token,
+      expiresAt
     });
   } catch (err) {
     console.error(err);
@@ -265,7 +394,12 @@ exports.setPassword = async (req, res) => {
 exports.googleCallback = async (req, res) => {
   try {
     const user = req.user;
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      role: user.isAdmin ? 'admin' : 'user'
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
@@ -287,3 +421,33 @@ exports.googleCallback = async (req, res) => {
     res.redirect(`${frontendURL}/login?error=authentication_failed`);
   }
 };
+
+
+// Check Status Controller
+exports.checkStatus = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({
+        exists: false,
+        isVerified: false,
+        hasUsername: false,
+        hasPassword: false,
+      });
+    }
+
+    res.status(200).json({
+      exists: true,
+      isVerified: user.isVerified,
+      hasUsername: !!user.username,
+      hasPassword: !!user.password,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
