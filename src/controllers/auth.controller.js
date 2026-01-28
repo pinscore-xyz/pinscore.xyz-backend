@@ -99,62 +99,62 @@ exports.validateOtp = async (req, res) => {
 
 // Set Username Controller
 // exports.setUsername = async (req, res) => {
-  // const { email, username } = req.body;
+// const { email, username } = req.body;
 
-  // try {
-  //   const user = await User.findOne({ email });
-  //   if (!user) return res.status(404).json({ message: "User not found" });
+// try {
+//   const user = await User.findOne({ email });
+//   if (!user) return res.status(404).json({ message: "User not found" });
 
-  //   if (!user.isVerified) {
-  //     return res.status(403).json({ message: "Account not verified" });
-  //   }
+//   if (!user.isVerified) {
+//     return res.status(403).json({ message: "Account not verified" });
+//   }
 
-  //   if (user.username) {
-  //     return res.status(409).json({ message: "Username already set" });
-  //   }
+//   if (user.username) {
+//     return res.status(409).json({ message: "Username already set" });
+//   }
 
-  //   const usernameExists = await User.findOne({ username });
-  //   if (usernameExists) {
-  //     return res.status(400).json({ message: "Username already taken " });
-  //   }
+//   const usernameExists = await User.findOne({ username });
+//   if (usernameExists) {
+//     return res.status(400).json({ message: "Username already taken " });
+//   }
 
-  //   user.username = username;
-  //   await user.save();
-  exports.setUsername = async (req, res) => {
+//   user.username = username;
+//   await user.save();
+exports.setUsername = async (req, res) => {
   const { email, username } = req.body;
-try {
+  try {
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Account not verified" });
+    }
+
+    if (!username || !username.trim()) {
+      return res.status(422).json({ message: "Username is required" });
+    }
+
+    if (user.username) {
+      return res.status(409).json({ message: "Username already set" });
+    }
+
+    const usernameExists = await User.findOne({
+      username,
+      _id: { $ne: user._id }
+    });
+
+    if (usernameExists) {
+      return res.status(409).json({ message: "Username already taken" });
+    }
+
+    user.username = username.trim();
+    await user.save();
+    res.status(200).json({ message: "Username set successfully" });
   }
-
-  if (!user.isVerified) {
-    return res.status(403).json({ message: "Account not verified" });
-  }
-  
-  if (!username || !username.trim()) {
-    return res.status(422).json({ message: "Username is required" });
-  }
-
-  if (user.username) {
-    return res.status(409).json({ message: "Username already set" });
-  }
-
-  const usernameExists = await User.findOne({
-    username,
-    _id: { $ne: user._id }
-  });
-
-  if (usernameExists) {
-    return res.status(409).json({ message: "Username already taken" });
-  }
-
-  user.username = username.trim();
-  await user.save();
-  res.status(200).json({ message: "Username set successfully" });
-}
-catch (err) {
+  catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -255,7 +255,7 @@ exports.setPassword = async (req, res) => {
 //         // email: user.email,
 //         role: user.isAdmin ? 'admin' : 'user'
 //       };
-      
+
 //       const token = jwt.sign(payload, process.env.JWT_SECRET, {
 //         expiresIn: "24h",
 //       });
@@ -326,6 +326,7 @@ exports.login = async (req, res) => {
 
       const payload = {
         sub: user._id,
+        email: user.email,
         role: user.isAdmin ? "admin" : "user"
       };
 
@@ -340,11 +341,11 @@ exports.login = async (req, res) => {
       // delete userObj.email; // avoid PII in frontend if needed
 
       const userObj = {
-      _id: user._id,
-      username: user.username,
-      isAdmin: user.isAdmin,
-      profilePicture: user.profilePicture || { url: null, public_id: null }
-    };
+        _id: user._id,
+        username: user.username,
+        isAdmin: user.isAdmin,
+        profilePicture: user.profilePicture || { url: null, public_id: null }
+      };
 
       return res.json({
         user: userObj,
@@ -363,6 +364,7 @@ exports.login = async (req, res) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const payload = {
       sub: user._id,
+      email: user.email,
       role: user.isAdmin ? "admin" : "user"
     };
 
@@ -404,7 +406,7 @@ exports.googleCallback = async (req, res) => {
     });
 
     const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
-    
+
     if (!user.username) {
       // No username: go to step 3 (add username)
       res.redirect(`${frontendURL}/signup?token=${token}&email=${user.email}&step=3`);
