@@ -145,7 +145,7 @@ This project does not specify a license. All rights are reserved by the owner.
 This repository operates under the Pinscore system authority model.
 
 - **Canonical Authority Charter:**  
-   [`/PINSCORE-DOCS/docs/EXECUTION_CHARTER.md`](/PINSCORE-DOCS/docs/EXECUTION_CHARTER.md)
+   [`/PINSCORE-DOCS/docs/role_charter.md`](/PINSCORE-DOCS/docs/role_charter.md)
 
 ### Key Rules
 
