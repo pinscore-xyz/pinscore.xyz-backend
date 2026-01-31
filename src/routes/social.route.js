@@ -1,9 +1,9 @@
-// src/routes/social.route.js (Updated with Analytics)
+// src/routes/social.route.js
 const express = require("express");
 const passport = require("passport");
 const authenticateToken = require("../middleware/authToken.middleware");
-const { 
-    getYoutubeAnalytics, 
+const {
+    getYoutubeAnalytics,
     disconnectYoutube,
     getInstagramAnalytics,
     getTwitterAnalytics,
@@ -24,35 +24,18 @@ router.get(
             "profile",
             "email",
         ],
+        session: false,
     })
 );
 
 router.get(
     "/youtube/callback",
-    passport.authenticate("youtube-oauth2", { failureRedirect: "/login" }),
+    passport.authenticate("youtube-oauth2", { failureRedirect: "/login", session: false }),
     (req, res) => {
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        // Successful authentication, redirect to frontend
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         res.redirect(`${frontendUrl}/dashboard/connected-accounts?success=youtube`);
     }
-  "/youtube/auth",
-  passport.authenticate("youtube-oauth2", {
-    scope: [
-      "https://www.googleapis.com/auth/youtube.readonly",
-      "profile",
-      "email",
-    ],
-    session: false,
-  })
-);
-
-router.get(
-  "/youtube/callback",
-  passport.authenticate("youtube-oauth2", { failureRedirect: "/login", session: false }),
-  (req, res) => {
-    // Successful authentication, redirect to frontend
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/dashboard/connected-accounts?success=youtube`);
-  }
 );
 
 router.put("/youtube/disconnect", authenticateToken, disconnectYoutube);
@@ -84,11 +67,11 @@ router.get("/platforms/status", authenticateToken, async (req, res) => {
     try {
         const User = require("../schema/user.schema");
         const user = await User.findById(req.user.userId);
-        
+
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: "User not found" 
+                message: "User not found"
             });
         }
 
@@ -132,10 +115,10 @@ router.get("/platforms/status", authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching platform status:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to fetch platform status",
-            error: error.message 
+            error: error.message
         });
     }
 });
