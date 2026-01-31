@@ -1,5 +1,21 @@
 # pinscore.xyz-backend
 
+## 📜 System Authority & Ownership
+
+This repository operates under the Pinscore system authority model.
+
+- **Canonical Authority Charter:**  
+  👉 [`/PINSCORE-DOCS/docs/role-charter.md`](../PINSCORE-DOCS/docs/role-charter.md)
+
+### Key Rules
+
+- Backend is the **system anchor**
+- Schemas are **contracts**
+- Architectural decisions are finalized by the **Chief Product Systems Architect (CPSA)**
+
+Any change that violates the charter **must be escalated before execution**.
+
+
 ## Project Overview
 
 This backend application, built with Node.js and Express.js, serves as the API for the pinscore.xyz platform. It provides authentication, user management, and other essential functionalities.
@@ -55,7 +71,7 @@ Follow these steps to set up the backend:
         GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
         FACEBOOK_APP_ID=YOUR_FACEBOOK_APP_ID
         FACEBOOK_APP_SECRET=YOUR_FACEBOOK_APP_SECRET
-        SESSION_SECRET=YOUR_SESSION_SECRET
+
         ```
 
         Replace the placeholder values with your actual credentials.
@@ -122,3 +138,19 @@ This project does not specify a license. All rights are reserved by the owner.
 -   [Node.js](https://nodejs.org/)
 -   [MongoDB](https://www.mongodb.com/)
 -   [Cloudinary](https://cloudinary.com/)
+
+
+##  System Authority & Ownership
+
+This repository operates under the Pinscore system authority model.
+
+- **Canonical Authority Charter:**  
+   [`/PINSCORE-DOCS/docs/role_charter.md`](/PINSCORE-DOCS/docs/role_charter.md)
+
+### Key Rules
+
+- Backend is the **system anchor**
+- Schemas are **contracts**
+- Architectural decisions are finalized by the **Chief Product Systems Architect (CPSA)**
+
+Any change that violates the charter **must be escalated before execution**.
