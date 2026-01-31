@@ -11,12 +11,13 @@ const connectDB = require("./src/config/db.config");
 const authRoutes = require("./src/routes/auth.route");
 const userRoutes = require("./src/routes/user.route");
 const socialRoutes = require("./src/routes/social.route");
+const eventsRoutes = require("./src/routes/events.route");
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://www.pinscore.xyz', 
+  origin: 'https://www.pinscore.xyz',
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -42,22 +43,23 @@ app.use(passport.session()); // Add this for session support
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/social", socialRoutes);
+app.use("/api/events", eventsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Error occurred:", err);
-  
+
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ message: "File too large. Maximum size is 2MB." });
     }
     return res.status(400).json({ message: "File upload error: " + err.message });
   }
-  
+
   if (err.name === 'ValidationError') {
     return res.status(400).json({ message: "Validation error: " + err.message });
   }
-  
+
   res.status(500).json({ message: "Something went wrong!", error: err.message });
 });
 
