@@ -1,6 +1,6 @@
 // src/controllers/social.controller.js (Integrated with Event System)
 const User = require("../schema/user.schema");
-const Event = require("../schema/event.schema");
+const Event = require("../models/event.model");
 const axios = require("axios");
 
 /**
@@ -108,16 +108,16 @@ exports.getYoutubeAnalytics = async (req, res) => {
         // Fetch full user from DB (token has only basic info)
         const user = await User.findById(req.user.userId);
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: "User not found" 
+                message: "User not found"
             });
         }
-        
+
         if (!user.youtube || !user.youtube.accessToken) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: "YouTube not connected" 
+                message: "YouTube not connected"
             });
         }
 
@@ -130,7 +130,7 @@ exports.getYoutubeAnalytics = async (req, res) => {
                 `https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true&access_token=${accessToken}`
             );
             stats = response.data.items[0].statistics;
-            
+
             // Get channel ID if not stored
             if (!channelId) {
                 channelId = response.data.items[0].id;
@@ -156,7 +156,7 @@ exports.getYoutubeAnalytics = async (req, res) => {
                     `https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true&access_token=${accessToken}`
                 );
                 stats = retryResponse.data.items[0].statistics;
-                
+
                 if (!channelId) {
                     channelId = retryResponse.data.items[0].id;
                     user.youtube.channelId = channelId;
@@ -208,18 +208,18 @@ exports.getYoutubeAnalytics = async (req, res) => {
             { id: 2, value: 20, label: "Other" },
         ];
 
-        res.json({ 
+        res.json({
             success: true,
-            metrics, 
-            metricsRaw, 
-            audience 
+            metrics,
+            metricsRaw,
+            audience
         });
     } catch (error) {
         console.error("Error fetching YouTube analytics:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to fetch YouTube analytics",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -228,25 +228,25 @@ exports.disconnectYoutube = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId);
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: "User not found" 
+                message: "User not found"
             });
         }
-        
+
         user.youtube = null;
         await user.save();
-        
-        res.json({ 
+
+        res.json({
             success: true,
-            message: "YouTube disconnected successfully" 
+            message: "YouTube disconnected successfully"
         });
     } catch (error) {
         console.error("Error disconnecting YouTube:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to disconnect YouTube",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -256,9 +256,9 @@ exports.getInstagramAnalytics = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId);
         if (!user || !user.instagram || !user.instagram.accessToken) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: "Instagram not connected" 
+                message: "Instagram not connected"
             });
         }
 
@@ -318,10 +318,10 @@ exports.getInstagramAnalytics = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching Instagram analytics:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to fetch Instagram analytics",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -331,9 +331,9 @@ exports.getTwitterAnalytics = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId);
         if (!user || !user.twitter || !user.twitter.accessToken) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: "Twitter not connected" 
+                message: "Twitter not connected"
             });
         }
 
@@ -346,10 +346,10 @@ exports.getTwitterAnalytics = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching Twitter analytics:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to fetch Twitter analytics",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -359,9 +359,9 @@ exports.getAggregatedAnalytics = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId);
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: "User not found" 
+                message: "User not found"
             });
         }
 
@@ -411,10 +411,10 @@ exports.getAggregatedAnalytics = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching aggregated analytics:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
             message: "Failed to fetch aggregated analytics",
-            error: error.message 
+            error: error.message
         });
     }
 };

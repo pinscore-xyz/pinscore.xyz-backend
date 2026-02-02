@@ -50,10 +50,10 @@ const runTests = () => {
     {
         const req = {
             body: {
-                event_id: "uuid-1234",
-                event_type: "impression",
+                event_id: "123e4567-e89b-12d3-a456-426614174000",
+                event_type: "view", // Changed from 'impression' to allowed type
                 actor_id: "user_456",
-                timestamp: 1698400000000, // Unix Ms
+                timestamp: Date.now(), // Current time to be safe
                 metadata: {}
             }
         };
@@ -69,10 +69,10 @@ const runTests = () => {
     {
         const req = {
             body: {
-                event_id: "123",
+                event_id: "123e4567-e89b-12d3-a456-426614174000",
                 // event_type missing
                 actor_id: "user_123",
-                timestamp: 1698400000000,
+                timestamp: Date.now(),
                 metadata: {}
             }
         };
@@ -84,10 +84,6 @@ const runTests = () => {
         assert(!nextCalled, "Validation before DB", "Execution stopped (next() not called)");
         assert(res.statusCode === 400, "Criteria: Missing fields -> 400", "Returned 400 Bad Request");
 
-        // Zod v4 issue workaround: check for "expected string" or "required" or similar
-        // The default error for missing key is { code: "invalid_type", expected: "string", received: "undefined" }
-        // Message: "Invalid input: expected string, received undefined"
-        // Also check if we can find which field
         const typeError = res.body.errors && res.body.errors.find(e => e.field === 'event_type');
         assert(!!typeError, "Criteria: Error messages clear", "Error specifically identified 'event_type' field");
     }
@@ -96,7 +92,7 @@ const runTests = () => {
     {
         const req = {
             body: {
-                event_id: "123",
+                event_id: "123e4567-e89b-12d3-a456-426614174000",
                 event_type: "click",
                 actor_id: "user_123",
                 timestamp: "yesterday", // Invalid
@@ -110,15 +106,61 @@ const runTests = () => {
         assert(res.statusCode === 400, "Criteria: Invalid types -> 400", "Returned 400 for invalid timestamp string");
     }
 
-    // Test 5: Malformed JSON/Empty Body (simulated)
+    // Test 5: Future Timestamp (Criteria Check)
     {
-        const req = { body: {} };
-        // In Zod schema, fields are required, so empty object fails
+        const futureTime = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        const req = {
+            body: {
+                event_id: "123e4567-e89b-12d3-a456-426614174000",
+                event_type: "click",
+                actor_id: "user_123",
+                timestamp: futureTime,
+                metadata: {}
+            }
+        };
         const res = createMockRes();
         const next = () => { };
 
         validateEvent(req, res, next);
-        assert(res.statusCode === 400, "Criteria: Reject malformed", "Empty body rejected");
+        assert(res.statusCode === 400, "Criteria: Future Rejected", "Future timestamp rejected");
+        assert(JSON.stringify(res.body.errors).includes("5 minutes"), "Criteria: Error Message", "Error explains 5 minute limit");
+    }
+
+    // Test 6: Invalid Event Type (Criteria Check)
+    {
+        const req = {
+            body: {
+                event_id: "123e4567-e89b-12d3-a456-426614174000",
+                event_type: "badevent",
+                actor_id: "user_123",
+                timestamp: Date.now(),
+                metadata: {}
+            }
+        };
+        const res = createMockRes();
+        const next = () => { };
+
+        validateEvent(req, res, next);
+        assert(res.statusCode === 400, "Criteria: Invalid Type Rejected", "Invalid event_type rejected");
+        assert(JSON.stringify(res.body.errors).includes("expected one of"), "Criteria: Error Message", "Error lists allowed types");
+    }
+
+    // Test 7: Invalid ID Format (Criteria Check)
+    {
+        const req = {
+            body: {
+                event_id: "not-a-uuid",
+                event_type: "click",
+                actor_id: "user_123",
+                timestamp: Date.now(),
+                metadata: {}
+            }
+        };
+        const res = createMockRes();
+        const next = () => { };
+
+        validateEvent(req, res, next);
+        assert(res.statusCode === 400, "Criteria: Invalid ID Rejected", "Non-UUID event_id rejected");
     }
 
     console.log("\n🎉 ALL ACCEPTANCE CRITERIA VERIFIED SUCCESSFULL");

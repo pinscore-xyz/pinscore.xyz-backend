@@ -1,5 +1,5 @@
 // src/controllers/event.controller.js
-const Event = require("../schema/event.schema");
+const Event = require("../models/event.model");
 const User = require("../schema/user.schema");
 
 // Ingest Single Event
@@ -29,26 +29,45 @@ exports.ingestEvent = async (req, res) => {
       eventData.pinscore_user_id = req.user.userId || req.user.id;
     }
 
-    // Create event using standard mongoose method
-    const event = new Event(eventData);
-    await event.save();
+    // Use model's ingest method for consistency and idempotency
+    const result = await Event.ingest(eventData);
+
+    if (result.status === "duplicate") {
+      return res.status(409).json({
+        success: false,
+        message: "Event with this ID already exists",
+        data: {
+          event_id: result.event.event_id,
+          received_at: result.received_at
+        }
+      });
+    }
 
     res.status(201).json({
       success: true,
       message: "Event ingested successfully",
       data: {
-        event_id: event.id,
-        received_at: event.receivedAt || new Date()
+        event_id: result.event.event_id,
+        received_at: result.received_at
       }
     });
 
   } catch (error) {
     console.error("Event ingestion error:", error);
 
+    // Initial check for immutable error from model
     if (error.message.includes("immutable")) {
       return res.status(403).json({
         success: false,
         message: "Events are immutable and cannot be modified"
+      });
+    }
+
+    // Handle duplicate key error if somehow it slips past ingest check (race condition)
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Event with this ID already exists (race condition)",
       });
     }
 

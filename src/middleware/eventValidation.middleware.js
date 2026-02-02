@@ -2,13 +2,26 @@ const { z } = require("zod");
 
 // Define the event schema based on the user contract
 const eventSchema = z.object({
-  event_id: z.union([z.string().uuid(), z.string().min(1, "event_id must be a valid string")]).describe("event_id (UUID / string)"),
-  event_type: z.string({ required_error: "event_type is required", invalid_type_error: "event_type must be a string" }).min(1, "event_type cannot be empty"),
+  event_id: z.string().uuid("event_id must be a valid UUID"),
+  event_type: z.enum([
+    'click', 'view', 'identify', 'page',
+    'commit.created', 'commit.completed', 'commit.abandoned',
+    'ritual.started', 'ritual.completed', 'ritual.missed', 'ritual.abandoned',
+    'quest.started', 'quest.stage_completed', 'quest.completed', 'quest.abandoned',
+    'session.started', 'session.ended',
+    'achievement.unlocked'
+  ], { errorMap: () => ({ message: "event_type must be a valid system event type" }) }),
   actor_id: z.string({ required_error: "actor_id is required" }).min(1, "actor_id cannot be empty"),
   timestamp: z.union([
     z.number().int().positive("timestamp must be a positive integer"),
     z.string().datetime({ message: "timestamp must be a valid ISO 8601 string" })
-  ], { required_error: "timestamp is required" }),
+  ], { required_error: "timestamp is required" }).refine((val) => {
+    const date = new Date(val);
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    const minDate = new Date('2020-01-01');
+    return date <= fiveMinutesFromNow && date >= minDate;
+  }, { message: "timestamp must be between 2020-01-01 and 5 minutes in the future" }),
   metadata: z.record(z.string(), z.any(), { required_error: "metadata is required" }).refine((val) => val !== null && typeof val === 'object' && !Array.isArray(val), {
     message: "metadata must be an object"
   })

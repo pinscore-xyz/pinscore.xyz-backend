@@ -1,5 +1,5 @@
 // src/controllers/webhook.controller.js
-const Event = require("../schema/event.schema");
+const Event = require("../models/event.model");
 const User = require("../schema/user.schema");
 
 /**
@@ -18,7 +18,7 @@ exports.handleYouTubeWebhook = async (req, res) => {
 
         // POST request contains actual notification
         const notification = req.body;
-        
+
         // Parse YouTube notification
         // (YouTube sends Atom feed format)
         const channelId = notification.channelId;
@@ -60,9 +60,9 @@ exports.handleYouTubeWebhook = async (req, res) => {
         res.status(200).send("OK");
     } catch (error) {
         console.error("YouTube webhook error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Webhook processing failed" 
+            message: "Webhook processing failed"
         });
     }
 };
@@ -94,7 +94,7 @@ exports.handleInstagramWebhook = async (req, res) => {
         if (body.object === "instagram") {
             for (const entry of body.entry) {
                 const userId = entry.id;
-                
+
                 // Find user
                 const user = await User.findOne({ "instagram.id": userId });
                 if (!user) continue;
@@ -105,7 +105,7 @@ exports.handleInstagramWebhook = async (req, res) => {
                     const value = change.value;
 
                     let eventType = "engagement";
-                    
+
                     // Map Instagram fields to event types
                     if (field === "likes") eventType = "engagement";
                     if (field === "comments") eventType = "comment";
@@ -140,9 +140,9 @@ exports.handleInstagramWebhook = async (req, res) => {
         res.status(200).send("EVENT_RECEIVED");
     } catch (error) {
         console.error("Instagram webhook error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Webhook processing failed" 
+            message: "Webhook processing failed"
         });
     }
 };
@@ -162,7 +162,7 @@ exports.handleTwitterWebhook = async (req, res) => {
                     .createHmac("sha256", process.env.TWITTER_CONSUMER_SECRET)
                     .update(crc_token)
                     .digest("base64");
-                
+
                 return res.status(200).json({
                     response_token: `sha256=${hmac}`
                 });
@@ -206,9 +206,9 @@ exports.handleTwitterWebhook = async (req, res) => {
         res.status(200).send("OK");
     } catch (error) {
         console.error("Twitter webhook error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Webhook processing failed" 
+            message: "Webhook processing failed"
         });
     }
 };
@@ -225,16 +225,16 @@ exports.handleTikTokWebhook = async (req, res) => {
         }
 
         const body = req.body;
-        
+
         // Process TikTok events
         // Implementation depends on TikTok's webhook format
-        
+
         res.status(200).send("OK");
     } catch (error) {
         console.error("TikTok webhook error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Webhook processing failed" 
+            message: "Webhook processing failed"
         });
     }
 };
@@ -258,9 +258,9 @@ exports.handleGenericWebhook = async (req, res) => {
         });
     } catch (error) {
         console.error("Generic webhook error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Webhook processing failed" 
+            message: "Webhook processing failed"
         });
     }
 };
@@ -294,9 +294,9 @@ exports.getWebhookStats = async (req, res) => {
         });
     } catch (error) {
         console.error("Webhook stats error:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Failed to fetch webhook stats" 
+            message: "Failed to fetch webhook stats"
         });
     }
 };
