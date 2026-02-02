@@ -1,5 +1,5 @@
 const { ingestEvent } = require('./src/controllers/event.controller');
-const Event = require('./src/schema/event.schema'); // Actually ./src/models/event.model.js based on previous view_file??
+const Event = require('./src/models/event.model');
 // Wait, the controller used require("../schema/event.schema"), let me check that file path.
 // The file I edited was src/models/event.model.js, but controller imported ../schema/event.schema
 // Let's assume the controller path was correct or if I need to mock it.
