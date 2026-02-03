@@ -58,6 +58,13 @@ const EventSchema = new mongoose.Schema({
     index: true
   },
 
+  timestamp: {
+    type: Date,
+    required: true,
+    immutable: true,
+    index: true
+  },
+
   subject_id: {
     type: String,
     required: false, // Conditionally required based on event_type
@@ -69,6 +76,13 @@ const EventSchema = new mongoose.Schema({
   context: {
     type: mongoose.Schema.Types.Mixed,
     required: true,
+    immutable: true,
+    default: {}
+  },
+
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false,
     immutable: true,
     default: {}
   },

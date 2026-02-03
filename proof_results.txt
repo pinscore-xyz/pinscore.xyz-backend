@@ -1,0 +1,74 @@
+Generating Proofs for Walkthrough...
+
+[Setup] Ingested event: e13f4900-e3d7-49dc-9c8b-d5627d964808
+
+
+=== 1. POSTMAN SUCCESS RESPONSE (GET /api/events/:id) ===
+Status: 200 OK
+Headers: {
+  "x-powered-by": "Express",
+  "vary": "Origin",
+  "access-control-allow-credentials": "true",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "319",
+  "etag": "W/\"13f-tmdA5igctxbEAgqNKp6zyiDeMpc\"",
+  "date": "Tue, 03 Feb 2026 12:20:01 GMT",
+  "connection": "keep-alive",
+  "keep-alive": "timeout=5"
+}
+Body:
+{
+  "success": true,
+  "data": {
+    "_id": "6981e7f086041e5b02234293",
+    "event_id": "e13f4900-e3d7-49dc-9c8b-d5627d964808",
+    "event_type": "click",
+    "actor_id": "proofer",
+    "timestamp": "2026-02-03T12:20:00.713Z",
+    "subject_id": null,
+    "metadata": {
+      "foo": "bar",
+      "source": "proof_script"
+    },
+    "received_at": "2026-02-03T12:20:00.958Z",
+    "schema_version": "v1"
+  }
+}
+
+
+=== 2. POSTMAN AUTH FAILURE (GET /api/events/:id) ===
+Status: 401 Unauthorized
+Body:
+{
+  "success": false,
+  "message": "Access denied: Missing or malformed token"
+}
+
+
+=== 3. SAMPLE JSON PAYLOAD ===
+{
+  "event_id": "e13f4900-e3d7-49dc-9c8b-d5627d964808",
+  "event_type": "click",
+  "actor_id": "proofer",
+  "timestamp": "2026-02-03T12:20:00.713Z",
+  "metadata": {
+    "foo": "bar",
+    "source": "proof_script"
+  },
+  "payload": {
+    "complex": [
+      1,
+      2,
+      3
+    ]
+  }
+}
+
+
+=== 4. DB DOCUMENT DUMP ===
+See 'Success Response' body above. Note the presence of '_id' and '__v' fields.
+
+
+=== 5. SERVER LOGS (Simulated) ===
+[2026-02-03T12:20:01.480Z] GET /api/events/e13f4900-e3d7-49dc-9c8b-d5627d964808 200 - - ms - -
+[2026-02-03T12:20:01.481Z] GET /api/events/e13f4900-e3d7-49dc-9c8b-d5627d964808 401 - - ms - -

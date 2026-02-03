@@ -4,6 +4,7 @@ const router = express.Router();
 const eventController = require("../controllers/event.controller");
 const authenticateToken = require("../middleware/authToken.middleware");
 const eventValidation = require("../middleware/eventValidation.middleware");
+const paginate = require("../middleware/pagination.middleware");
 
 // Authenticated event ingestion
 router.post(
@@ -37,6 +38,14 @@ router.get(
   "/platform/:platform",
   authenticateToken,
   eventController.getEventsByPlatform
+);
+
+// Get all events (Paginated)
+router.get(
+  "/",
+  authenticateToken,
+  paginate,
+  eventController.getAllEvents
 );
 
 router.get(

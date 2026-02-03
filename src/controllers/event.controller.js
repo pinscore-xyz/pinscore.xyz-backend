@@ -285,11 +285,13 @@ exports.getEventsSummary = async (req, res) => {
 };
 
 // Get Single Event by ID
+// Get Single Event by ID
 exports.getEventById = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    const event = await Event.findOne({ id: eventId });
+    // Use event_id as the canonical public identifier
+    const event = await Event.findOne({ event_id: eventId });
 
     if (!event) {
       return res.status(404).json({
@@ -308,6 +310,43 @@ exports.getEventById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to retrieve event",
+      error: error.message
+    });
+  }
+};
+
+// Get All Events (Paginated, Ordered, Raw)
+exports.getAllEvents = async (req, res) => {
+  try {
+    const { limit, skip, page } = req.pagination;
+    const { event_type, actor_id } = req.query;
+
+    const query = {};
+    if (event_type) query.event_type = event_type;
+    if (actor_id) query.actor_id = actor_id;
+
+    const events = await Event.find(query)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Event.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: events,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error("Get all events error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve events",
       error: error.message
     });
   }
